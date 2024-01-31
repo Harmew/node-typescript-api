@@ -5,8 +5,13 @@ import bodyParser from 'body-parser';
 import { Server } from '@overnightjs/core';
 import { Application } from 'express';
 
+// Database
+import * as database from '@src/database';
+
 // Controllers
 import { ForecastController } from './controllers/forecast';
+import { BeachesController } from './controllers/beaches';
+import { UsersController } from './controllers/users';
 
 /**
  * Essa classe é responsável por configurar o servidor.
@@ -30,7 +35,23 @@ export class SetupServer extends Server {
    */
   private setupControllers(): void {
     const forecastController = new ForecastController();
-    this.addControllers([forecastController]);
+    const beachesController = new BeachesController();
+    const usersController = new UsersController();
+    this.addControllers([forecastController, beachesController, usersController]);
+  }
+
+  /**
+   * Essa função é responsável por configurar o banco de dados.
+   */
+  private async databaseSetup(): Promise<void> {
+    await database.connect();
+  }
+
+  /**
+   * Essa função é responsável por fechar a conexão com o banco de dados.
+   */
+  public async close(): Promise<void> {
+    await database.close();
   }
 
   /**
@@ -46,11 +67,22 @@ export class SetupServer extends Server {
   public getApp(): Application {
     return this.app;
   }
+
   /**
    * Essa função é responsável por iniciar o servidor.
    */
-  public init(): void {
+  public start(): void {
+    this.app.listen(this.port, () => {
+      console.info('Server listening on port: ' + this.port);
+    });
+  }
+
+  /**
+   * Essa função é responsável por iniciar o servidor.
+   */
+  public async init(): Promise<void> {
     this.setupExpress();
     this.setupControllers();
+    await this.databaseSetup();
   }
 }
