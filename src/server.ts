@@ -1,6 +1,8 @@
 import './util/module-alias';
 
 import bodyParser from 'body-parser';
+import expressPinoLogger from 'express-pino-logger';
+import cors from 'cors';
 
 import { Server } from '@overnightjs/core';
 import { Application } from 'express';
@@ -12,6 +14,8 @@ import * as database from '@src/database';
 import { ForecastController } from './controllers/forecast';
 import { BeachesController } from './controllers/beaches';
 import { UsersController } from './controllers/users';
+
+// Logger
 import logger from './logger';
 
 /**
@@ -28,6 +32,8 @@ export class SetupServer extends Server {
    * */
   private setupExpress(): void {
     this.app.use(bodyParser.json());
+    this.app.use(expressPinoLogger());
+    this.app.use(cors({ origin: '*' }));
   }
 
   /**
