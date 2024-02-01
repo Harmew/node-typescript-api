@@ -11,7 +11,7 @@ export abstract class BaseController {
       const clientErrors = this.handleClientErrors(err);
       res.status(clientErrors.code).send({ code: clientErrors.code, error: clientErrors.error });
     } else {
-      logger.error(err as Error);
+      logger.error(JSON.stringify(err));
       res.status(500).send({ code: 500, error: 'Something went wrong!' });
     }
   }
