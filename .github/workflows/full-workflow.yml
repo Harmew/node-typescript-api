@@ -1,6 +1,12 @@
 name: Complete Workflow
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
@@ -13,11 +19,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - run: git fetch --prune --unshallow
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.1.0
         with:
