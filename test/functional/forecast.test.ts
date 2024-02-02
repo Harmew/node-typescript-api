@@ -1,7 +1,7 @@
 import nock from 'nock';
 
 // Models
-import { Beach, BeachPosition } from '@src/models/beach';
+import { Beach, GeoPosition } from '@src/models/beach';
 import { User } from '@src/models/user';
 
 // Services
@@ -27,7 +27,7 @@ describe('Beach forecast functional tests', () => {
       lat: -33.792726,
       lng: 151.289824,
       name: 'Manly',
-      position: BeachPosition.E,
+      position: GeoPosition.E,
       user: user.id,
     };
     await new Beach(defaultBeach).save();
@@ -48,6 +48,7 @@ describe('Beach forecast functional tests', () => {
         lng: '151.289824',
         params: /(.*)/,
         source: 'noaa',
+        end: /(.*)/,
       })
       .reply(200, stormGlassWeather3HoursFixture);
 
