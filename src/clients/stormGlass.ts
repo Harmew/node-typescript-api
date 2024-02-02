@@ -34,19 +34,12 @@ export interface ForecastPoint {
   windSpeed: number;
 }
 
-/**
- * This error type is used when a request reaches out to the StormGlass API but returns an error
- */
 export class StormGlassUnexpectedResponseError extends InternalError {
   constructor(message: string) {
     super(message);
   }
 }
 
-/**
- * This error type is used when something breaks before the request reaches out to the StormGlass API
- * eg: Network error, or request validation error
- */
 export class ClientRequestError extends InternalError {
   constructor(message: string) {
     const internalMessage = 'Unexpected error when trying to communicate to StormGlass';
@@ -61,9 +54,6 @@ export class StormGlassResponseError extends InternalError {
   }
 }
 
-/**
- * We could have proper type for the configuration
- */
 const stormglassResourceConfig: IConfig = config.get('App.resources.StormGlass');
 
 export class StormGlass {
@@ -85,18 +75,14 @@ export class StormGlass {
       );
       return this.normalizeResponse(response.data);
     } catch (err) {
-      //@Updated 2022 to support Error as unknown
-      //https://devblogs.microsoft.com/typescript/announcing-typescript-4-4/#use-unknown-catch-variables
       if (err instanceof Error && HTTPUtil.Request.isRequestError(err)) {
         const error = HTTPUtil.Request.extractErrorData(err);
         throw new StormGlassResponseError(`Error: ${JSON.stringify(error.data)} Code: ${error.status}`);
       }
-      /**
-       * All the other errors will fallback to a generic client error
-       */
       throw new ClientRequestError(JSON.stringify(err));
     }
   }
+
   private normalizeResponse(points: StormGlassForecastResponse): ForecastPoint[] {
     return points.hours.filter(this.isValidPoint.bind(this)).map((point) => ({
       swellDirection: point.swellDirection[this.stormGlassAPISource],
