@@ -7,6 +7,9 @@ import { User } from '@src/models/user';
 // Services
 import AuthService from '@src/services/auth';
 
+// Utils
+import CacheUtil from '@src/util/cache';
+
 // Fixtures
 import stormGlassWeather3HoursFixture from '../fixtures/stormglass_weather_3_hours.json';
 import apiForecastResponse1BeachFixture from '../fixtures/api_forecast_response_1_beach.json';
@@ -19,6 +22,7 @@ describe('Beach forecast functional tests', () => {
   };
 
   let token: string;
+
   beforeEach(async () => {
     await Beach.deleteMany({});
     await User.deleteMany({});
@@ -32,6 +36,7 @@ describe('Beach forecast functional tests', () => {
     };
     await new Beach(defaultBeach).save();
     token = AuthService.generateToken(user.toJSON());
+    CacheUtil.clearAllCache();
   });
 
   it('should return a forecast with just a few times', async () => {

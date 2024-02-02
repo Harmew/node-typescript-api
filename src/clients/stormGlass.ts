@@ -3,6 +3,8 @@ import config, { IConfig } from 'config';
 // Another way to have similar behaviour to TS namespaces
 import * as HTTPUtil from '@src/util/request';
 import { TimeUtil } from '@src/util/time';
+import CacheUtil from '@src/util/cache';
+import logger from '@src/logger';
 
 export interface StormGlassPointSource {
   [key: string]: number;
@@ -34,19 +36,12 @@ export interface ForecastPoint {
   windSpeed: number;
 }
 
-/**
- * This error type is used when a request reaches out to the StormGlass API but returns an error
- */
 export class StormGlassUnexpectedResponseError extends InternalError {
   constructor(message: string) {
     super(message);
   }
 }
 
-/**
- * This error type is used when something breaks before the request reaches out to the StormGlass API
- * eg: Network error, or request validation error
- */
 export class ClientRequestError extends InternalError {
   constructor(message: string) {
     const internalMessage = 'Unexpected error when trying to communicate to StormGlass';
@@ -61,18 +56,27 @@ export class StormGlassResponseError extends InternalError {
   }
 }
 
-/**
- * We could have proper type for the configuration
- */
 const stormglassResourceConfig: IConfig = config.get('App.resources.StormGlass');
 
 export class StormGlass {
   readonly stormGlassAPIParams = 'swellDirection,swellHeight,swellPeriod,waveDirection,waveHeight,windDirection,windSpeed';
   readonly stormGlassAPISource = 'noaa';
 
-  constructor(protected request = new HTTPUtil.Request()) {}
+  constructor(protected request = new HTTPUtil.Request(), protected cacheUtil = CacheUtil) {}
 
   public async fetchPoints(lat: number, lng: number): Promise<ForecastPoint[]> {
+    const cachedForecastPoints = this.getForecastPointsFromCache(this.getCacheKey(lat, lng));
+
+    if (!cachedForecastPoints) {
+      const forecastPoints = await this.getForecastPointsFromApi(lat, lng);
+      this.setForecastPointsInCache(this.getCacheKey(lat, lng), forecastPoints);
+      return forecastPoints;
+    }
+
+    return cachedForecastPoints;
+  }
+
+  protected async getForecastPointsFromApi(lat: number, lng: number): Promise<ForecastPoint[]> {
     const endTimestamp = TimeUtil.getUnixTimeForAFutureDay(1);
     try {
       const response = await this.request.get<StormGlassForecastResponse>(
@@ -85,18 +89,34 @@ export class StormGlass {
       );
       return this.normalizeResponse(response.data);
     } catch (err) {
-      //@Updated 2022 to support Error as unknown
-      //https://devblogs.microsoft.com/typescript/announcing-typescript-4-4/#use-unknown-catch-variables
       if (err instanceof Error && HTTPUtil.Request.isRequestError(err)) {
         const error = HTTPUtil.Request.extractErrorData(err);
         throw new StormGlassResponseError(`Error: ${JSON.stringify(error.data)} Code: ${error.status}`);
       }
-      /**
-       * All the other errors will fallback to a generic client error
-       */
       throw new ClientRequestError(JSON.stringify(err));
     }
   }
+
+  protected getForecastPointsFromCache(key: string): ForecastPoint[] | undefined {
+    const forecastPointsFromCache = this.cacheUtil.get<ForecastPoint[]>(key);
+
+    if (!forecastPointsFromCache) {
+      return;
+    }
+
+    logger.info(`Using cache to return forecast points for key: ${key}`);
+    return forecastPointsFromCache;
+  }
+
+  private getCacheKey(lat: number, lng: number): string {
+    return `forecast_points_${lat}_${lng}`;
+  }
+
+  private setForecastPointsInCache(key: string, forecastPoints: ForecastPoint[]): boolean {
+    logger.info(`Updating cache to return forecast points for key: ${key}`);
+    return this.cacheUtil.set(key, forecastPoints, stormglassResourceConfig.get('cacheTtl'));
+  }
+
   private normalizeResponse(points: StormGlassForecastResponse): ForecastPoint[] {
     return points.hours.filter(this.isValidPoint.bind(this)).map((point) => ({
       swellDirection: point.swellDirection[this.stormGlassAPISource],

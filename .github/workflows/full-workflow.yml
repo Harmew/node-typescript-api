@@ -36,10 +36,10 @@ jobs:
       - name: Run all tests
         run: yarn test
 
-      - name: Deploy application on Heroku
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: akhileshns/heroku-deploy@v3.12.12
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: 'surf-app-typescript'
-          heroku_email: 'dann.ew@outlook.com'
+      # - name: Deploy application on Heroku
+      #   if: ${{ github.ref == 'refs/heads/main' }}
+      #   uses: akhileshns/heroku-deploy@v3.12.12
+      #   with:
+      #     heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+      #     heroku_app_name: 'surf-app-typescript'
+      #     heroku_email: 'dann.ew@outlook.com'
