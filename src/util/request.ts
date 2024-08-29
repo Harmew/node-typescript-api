@@ -24,6 +24,6 @@ export class Request {
         status: axiosError.response.status,
       };
     }
-    throw Error(`The error ${error} is not a Request Error`);
+    throw Error(`O erro ${error} não é um Request Error`);
   }
 }

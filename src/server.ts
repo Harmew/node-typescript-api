@@ -1,7 +1,6 @@
 import './util/module-alias';
 
 import bodyParser from 'body-parser';
-// import expressPinoLogger from 'express-pino-logger';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import apiSchema from './api.schema.json';
@@ -11,18 +10,12 @@ import { OpenApiValidator } from 'express-openapi-validator';
 import { OpenAPIV3 } from 'express-openapi-validator/dist/framework/types';
 
 import { Server } from '@overnightjs/core';
-import { Application } from 'express';
 
 // Middlewares
 import { apiErrorValidator } from '@src/middlewares/api-error-validator';
 
-// Database
-import * as database from '@src/database';
-
 // Controllers
 import { ForecastController } from './controllers/forecast';
-import { BeachesController } from './controllers/beaches';
-import { UsersController } from './controllers/users';
 
 // Logger
 import logger from './logger';
@@ -41,7 +34,6 @@ export class SetupServer extends Server {
    * */
   private setupExpress(): void {
     this.app.use(bodyParser.json());
-    // this.app.use(expressPinoLogger());
     this.app.use(cors({ origin: '*' }));
   }
 
@@ -58,16 +50,7 @@ export class SetupServer extends Server {
    */
   private setupControllers(): void {
     const forecastController = new ForecastController();
-    const beachesController = new BeachesController();
-    const usersController = new UsersController();
-    this.addControllers([forecastController, beachesController, usersController]);
-  }
-
-  /**
-   * Essa função é responsável por configurar o banco de dados.
-   */
-  private async databaseSetup(): Promise<void> {
-    await database.connect();
+    this.addControllers([forecastController]);
   }
 
   /**
@@ -83,32 +66,11 @@ export class SetupServer extends Server {
   }
 
   /**
-   * Essa função é responsável por fechar a conexão com o banco de dados.
-   */
-  public async close(): Promise<void> {
-    await database.close();
-  }
-
-  /**
-   * Essa função é responsável por retornar a instância do Express.
-   * @returns {Application} Instância do Express.
-   *
-   * @example
-   * const server = new SetupServer();
-   * server.init();
-   * const app = server.getApp();
-   * app.listen(3000);
-   */
-  public getApp(): Application {
-    return this.app;
-  }
-
-  /**
    * Essa função é responsável por iniciar o servidor.
    */
   public start(): void {
     this.app.listen(this.port, () => {
-      logger.info('Server listening on port: ' + this.port);
+      logger.info('Servidor rodando na porta: ' + this.port);
     });
   }
 
@@ -119,7 +81,6 @@ export class SetupServer extends Server {
     this.setupExpress();
     this.setupControllers();
     await this.docsSetup();
-    await this.databaseSetup();
     this.setupErrorHandlers();
   }
 }

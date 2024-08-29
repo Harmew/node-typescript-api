@@ -3,12 +3,9 @@ import httpStatusCodes from 'http-status-codes';
 export interface APIError {
   message: string;
   code: number;
-  codeAsString?: string;
-  description?: string;
-  documentation?: string;
 }
 
-export interface APIErrorResponse extends Omit<APIError, 'codeAsString'> {
+export interface APIErrorResponse extends APIError {
   error: string;
 }
 
@@ -18,10 +15,8 @@ export default class ApiError {
       ...{
         message: error.message,
         code: error.code,
-        error: error.codeAsString ? error.codeAsString : httpStatusCodes.getStatusText(error.code),
+        error: httpStatusCodes.getStatusText(error.code),
       },
-      ...(error.documentation && { documentation: error.documentation }),
-      ...(error.description && { description: error.description }),
     };
   }
 }

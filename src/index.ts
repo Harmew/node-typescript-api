@@ -12,12 +12,12 @@ enum ExitStatus {
 }
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error(`App exiting due to an unhandled promise: ${promise} and reason: ${reason}`);
+  logger.error(`Aplicação encerrada devido a uma promise não tratada: ${promise} e motivo: ${reason}`);
   throw reason;
 });
 
 process.on('uncaughtException', (error) => {
-  logger.error(`App exiting due to an uncaught exception: ${error}`);
+  logger.error(`Aplicação encerrada devido a uma exceção não tratada: ${error}`);
   process.exit(ExitStatus.Failure);
 });
 
@@ -35,19 +35,17 @@ process.on('uncaughtException', (error) => {
     exitSignals.map((signal) =>
       process.on(signal, async () => {
         try {
-          // Encerrando o servidor
-          await server.close();
-          logger.info(`App exited with success`);
+          logger.info(`Aplicação encerrada com sucesso`);
           process.exit(ExitStatus.Success);
         } catch (err) {
           // Caso ocorra um erro ao encerrar o servidor
-          logger.error(`App exited with error: ${err}`);
+          logger.error(`Ocorreu um erro ao encerrar a aplicação: ${err}`);
           process.exit(ExitStatus.Failure);
         }
       })
     );
   } catch (err) {
-    logger.error(`App exited with error: ${err}`);
+    logger.error(`Aplicação encerrada com erro: ${err}`);
     process.exit(ExitStatus.Failure);
   }
 })();
