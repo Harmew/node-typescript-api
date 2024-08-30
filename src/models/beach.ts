@@ -3,6 +3,10 @@ export enum GeoPosition {
   E = 'E',
   W = 'W',
   N = 'N',
+  NE = 'NE',
+  SE = 'SE',
+  NW = 'NW',
+  SW = 'SW',
 }
 
 export interface Beach {

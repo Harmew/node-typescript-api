@@ -62,7 +62,7 @@ const stormglassResourceConfig: IConfig = config.get('App.resources.StormGlass')
 
 export class StormGlass {
   readonly stormGlassAPIParams = 'swellDirection,swellHeight,swellPeriod,waveDirection,waveHeight,windDirection,windSpeed';
-  readonly stormGlassAPISource = 'dwd,noaa';
+  readonly stormGlassAPISource = 'noaa';
 
   constructor(protected request = new HTTPUtil.Request()) {}
 
@@ -83,7 +83,6 @@ export class StormGlass {
           },
         }
       );
-      console.log(response.data);
       return this.normalizeResponse(response.data);
     } catch (err) {
       if (err instanceof Error && HTTPUtil.Request.isRequestError(err)) {
